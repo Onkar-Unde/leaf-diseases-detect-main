@@ -150,6 +150,50 @@ img {
     margin: 14px 0;
 }
 
+/* LOADER */
+.loader-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 40px;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 5px solid #e5e7eb;
+    border-top: 5px solid #16a34a;
+    animation: spin 0.9s linear infinite;
+}
+
+.loader-text {
+    margin-top: 12px;
+    font-size: 15px;
+    color: #16a34a;
+    font-weight: 500;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+}
+            
+/* ANIMATION */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(10px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
 /* FOOTER */
 .footer {
     margin-top: auto;
@@ -220,7 +264,7 @@ with col1:
     container = st.container()
 
     with container:
-        st.markdown('<div>', unsafe_allow_html=True)
+        
 
         uploaded_file = st.file_uploader(
             "Upload Leaf Image",
@@ -233,13 +277,19 @@ with col1:
         if uploaded_file:
             st.image(uploaded_file, use_container_width=True)
 
-        st.markdown('</div>', unsafe_allow_html=True)
+      
 
 # -------- PROCESS --------
 with col2:
     if uploaded_file:
         if st.button("Analyze Leaf"):
-            with st.spinner("Analyzing leaf health..."):
+                loader = st.empty()
+                loader.markdown("""
+                <div class="loader-wrapper">
+                     <div class="loader"></div>
+                     <div class="loader-text">Analyzing leaf health...</div>
+                </div>
+                """, unsafe_allow_html=True)           
                 try:
                     files = {
                         "file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)
@@ -249,7 +299,7 @@ with col2:
                         f"{api_url}/disease-detection-file",
                         files=files
                     )
-
+                    loader.empty()
                     if response.status_code == 200:
                         result = response.json()
 
@@ -278,15 +328,16 @@ with col2:
 
                             st.markdown('<div class="section"><h4>Symptoms</h4></div>', unsafe_allow_html=True)
                             for s in result.get("symptoms", []):
-                                st.write(f"• {s}")
+                               st.markdown(f"<span style='color:black;'>• {s}</span>", unsafe_allow_html=True)
 
                             st.markdown('<div class="section"><h4>Causes</h4></div>', unsafe_allow_html=True)
                             for c in result.get("possible_causes", []):
-                                st.write(f"• {c}")
+                                st.markdown(f"<span style='color:black;'>• {c}</span>", unsafe_allow_html=True)
+
 
                             st.markdown('<div class="section"><h4>Treatment</h4></div>', unsafe_allow_html=True)
                             for t in result.get("treatment", []):
-                                st.write(f"• {t}")
+                                st.markdown(f"<span style='color:black;'>• {t}</span>", unsafe_allow_html=True)
 
                         # HEALTHY
                         else:
